@@ -161,7 +161,8 @@ console.log(dog); // => "cute"
 // 条件式 ? Trueのとき処理する式 : Falseのとき処理する式;
 
 // 値→真偽値
-// 以下のような値は、falseに変換される。逆に、それ以外はtrue
+// 以下のような値は、falseに変換される。逆に、それ以外はtrue。
+// falsyな値とも言う。
 false;
 undefined;
 null;
@@ -274,3 +275,150 @@ console.log(obj6.testMethod());
 
 // 式とは
 // 値を生成し、変数に代入できるもの
+
+// switch文について
+// 関数と組み合わせて条件に対する値を返す時に便利。switch()の引数が、どのcaseに引っ掛かるかということを調査する。
+// defaultは、当てはまらなかった場合の処理。if文の最後のelseみたいな感じ。
+function getECMAScriptName(version) {
+  switch (version) {
+    case "ES5":
+      return "ECMAScript5";
+    case "ES6":
+      return "ECMAScript2015";
+    default:
+      console.log("しらないバージョンです");
+      break;
+  }
+}
+getECMAScriptName("ES5");
+
+// ループと反復処理について
+
+// while文
+// while文は、条件式がtrueなら反復処理を行う。
+// 無限ループの可能性もある。もっと安全な反復処理の書き方はあるため、安易にwhile文を使うよりも、ほかの書き方で解決できないかを考えてからで遅くない。
+let z = 0;
+let inc = 0;
+while (inc < 5) {
+  z += 1;
+  console.log(z);
+  inc += 1;
+}
+
+// do-while文
+// while分とほぼ同じだが実行順序が異なる。最低1回中身の処理を実行して、条件次第でループ
+let x = 0;
+let i = 0;
+
+do {
+  console.log(x);
+  x += 1;
+  i += 1;
+} while (i < 5);
+
+// ユーザ入力のバリデーションで使える。天才？
+let input2;
+do {
+  input = prompt("1〜10の数字を入れてください");
+} while (input < 1 || input > 10);
+
+// for文
+// 繰り返し回数を決めたループができる。
+// for (初期化式; 条件式; 増分式) {
+//   実行する文;
+// }
+
+// 任意の数値が入った配列を受け取り、その合計値を返す関数
+// ↓↓は、配列の長さは10。iは0始まりのため、0,1,2,3,4,5,6,7,8,9の時に実行される。arrayのlengthはn個のnを素直に取るため、1個ずれるので注意。
+function sum(array) {
+  let totalNum = 0;
+  for (let i = 0; i < array.length; i++) {
+    totalNum = totalNum + array[i];
+  }
+  return totalNum;
+}
+console.log(sum([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]));
+
+// 配列のforEachメソッド
+// forEachメソッドはアロー関数を使う
+// forEachは、関数を引数に受け取れる高階関数
+
+// 配列の要素を1つずつ出力する
+const array2 = [1, 5, 9];
+array2.forEach((currentNum) => {
+  console.log(currentNum);
+});
+
+// 数値の合計を返すsum 関数をforEachメソッドで実装
+function sumByForEach(numArray) {
+  let totalNum = 0;
+  numArray.forEach((currentNum) => {
+    totalNum += currentNum;
+  });
+  return `合計は、${totalNum}です。`;
+}
+
+console.log(sumByForEach([1, 3, 4, 6, 7]));
+
+// ちなみに以下はエラー。,区切りで配列は表せず、複数の引数になって2つ目以降はスルーされる。
+console.log(sumByForEach(1, 3, 4, 6, 7));
+
+// break;
+// break;を使うと、処理の途中で強制的にループを終了させる。しかし、returnは値込みでループを終了できるので、そっちで良いと思った。
+// →と思ったが、returnは関数の中でしか使えないみたい。スクリプトのトップレベルなど関数の外で書いている場合は、break;で処理を終了させるとよい。
+// また、関数の中でもループだけを終わらせたい場合はbreak;。returnすると関数が終わってしまう。
+// }
+const items = [
+  { name: "りんご", match: false },
+  { name: "バナナ", match: true },
+  { name: "みかん", match: false },
+];
+
+function process(items) {
+  let found = null;
+  for (const item of items) {
+    if (item.match) {
+      found = item;
+      break;
+    }
+  }
+  cleanup();
+  log(found);
+  return found;
+}
+
+// someメソッド
+// someメソッドは配列に対して使う高階関数。配列の頭からコールバック関数を実行して、一度でもtrueになったらreturnをtrueにして処理を終了。
+// .someの左側の配列からひとつずつ、some()が呼び出すコールバック関数の引数に入る。
+const arrayContainEven = [1, 3, 5, 7, 9, 7, 5, 7];
+function isEven(num) {
+  if (num % 2 === 0) {
+    return true;
+  }
+}
+if (arrayContainEven.some(isEven)) {
+  console.log("偶数が含まれているよ");
+} else {
+  console.log("偶数は含まれていないよ");
+}
+
+// ちなみに結果を変数に入れるとわかりやすく書ける。（個人的には、結果のboolean値を再利用するならこっちの方が良いと思った）
+// どちらも、someで配列の値を左から1つづつ取ってきて引数にしていることは変わりない。
+// これはfunctionで定義してもいいし、アロー関数の無名関数でもいい。
+const isContainBoolean = arrayContainEven.some((num) => {
+  if (num % 2 === 0) {
+    return true;
+  }
+});
+// これでもOK。学びとして、function(){}でも無名関数を定義できる。
+// const isContainBoolean2 = arrayContainEven.some(function (num) {
+//   if (num % 2 === 0) {
+//     return true;
+//   }
+// });
+
+if (isContainBoolean) {
+  console.log("偶数が含まれているよ");
+} else {
+  console.log("偶数は含まれていないよ");
+}
