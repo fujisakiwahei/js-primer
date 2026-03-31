@@ -116,12 +116,20 @@ const obj2Another = {
 const obj3 = {
   name: "koizumi",
 };
-
 // ドット記法
 console.log(obj3.name);
-
 // ブラケット記法
 console.log(obj["name"]);
+
+// ブラケット記法では、プロパティ名に変数も利用できる。
+const languages = {
+  ja: "日本語",
+  en: "英語",
+};
+const myLang = "ja";
+console.log(languages[myLang]); // => "日本語"
+
+// 基本的には簡潔なドット記法を使い、プロパティ名に変数を入れたい時にブラケット記法を使うのでOK。
 
 // 演算子について
 
@@ -410,7 +418,7 @@ const isContainBoolean = arrayContainEven.some((num) => {
     return true;
   }
 });
-// これでもOK。学びとして、function(){}でも無名関数を定義できる。
+// これでもOK。学びとして、function(){}でも無名関数を定義できる。逆に、アロー関数では名前をつけられないので変数に代入する。
 // const isContainBoolean2 = arrayContainEven.some(function (num) {
 //   if (num % 2 === 0) {
 //     return true;
@@ -422,3 +430,126 @@ if (isContainBoolean) {
 } else {
   console.log("偶数は含まれていないよ");
 }
+
+// 2つの数値を受け取って、その合計を返すアロー関数
+const addTwoNunbers = (num1, num2) => {
+  return num1 + num2;
+};
+
+// 配列内のすべての要素を2倍にして返すアロー関数
+const arrayTo2x = (array) => {
+  let returnArray = [];
+  let i = 0;
+
+  array.forEach((currentNum) => {
+    returnArray[i] = currentNum * 2;
+    i++;
+  });
+
+  return returnArray;
+};
+console.log(arrayTo2x([1, 3, 2, 0]));
+
+// continue文を使うと、次のループに移動できる。
+
+// 配列のfilterメソッド
+// filterメソッドには、配列の中から特定の値だけを取り出す。コールバック関数として、配列の各要素が条件に一致するかテストする関数を渡す。
+function isEven2(num) {
+  return num % 2 === 0;
+}
+
+const isEvenOnArray = (array) => {
+  return array.filter(isEven2);
+};
+console.log(isEvenOnArray([1, 2, 3, 4, 5]));
+
+// for...in は列挙可能な「キー」を（プロトタイプ（オブジェクト同士を繋いで参照しにいくもの）由来も含めて）列挙する。
+// 値だけ・自身のプロパティだけ取りたい場合は Object.keys / Object.entries などが向きやすい。
+// Object.keys静的メソッドでオブジェクトの中身を列挙する場合。Object.keysはキーを列挙した配列を返すので、それに対してforEachを回している。
+const objKeyTest = {
+  a: 1,
+  b: 2,
+  c: 3,
+};
+Object.keys(objKeyTest).forEach((key) => {
+  const value = objKeyTest[key];
+  console.log(`key:${key}, value:${value}`);
+});
+// "key:a, value:1"
+// "key:b, value:2"
+// "key:c, value:3"
+
+//　配列のメソッドはすごくたくさんある。[ref: MDN](https://developer.mozilla.org/ja/docs/Web/JavaScript/Reference/Global_Objects/Array)
+
+// オブジェクトについて
+// オブジェクトは、プロパティ（keyとvalue）の集合体。
+// 各ブラウザには、あらゆるオブジェクトの元となる`Object`というビルトインオブジェクトがあり、それに対してメソッドなどを利用できる。
+
+// プロパティ名と値に指定する変数名が同じ場合は{ americanName }のように省略して書ける。
+// 実際には、americanName: "Jack"が入っている。
+// 分割代入でも同じ。{}の中でプロパティ名が単独で書かれている場合はこの記法であることに注意。
+const americanName = "Jack";
+
+const user1 = {
+  americanName,
+};
+console.log(user1.americanName);
+
+// オブジェクトリテラル({})は、ビルトインオブジェクトの`Object`のインスタンスを作っている。
+// `Object`ビルトインオブジェクトは始祖。詳しくは後ほど。
+
+// オブジェクトの分割代入。const { ja, en } = userLanguageとしたら、userLanguagesの中からjaキーとenキーの値を代入してくれる。
+// frは、オブジェクトにないためundefinedになる。→JavaScriptでは、存在しないプロパティに対してアクセスした場合に例外ではなくundefinedを返す。
+const userLanguages = {
+  ja: "日本語",
+  en: "英語",
+};
+
+const { ja, en, fr } = userLanguages;
+console.log(ja);
+console.log(en);
+console.log(fr); // => undefined
+
+// オブジェクトは、一度作成した後に値を変更できるミュータブルという特性を持つ。そのため、後からプロパティを追加することができる
+// 単純にわかりづらいので、できる限り作成後に新しいプロパティは追加しないほうがよい。オブジェクトリテラルの定義時にまとめてやるのがベスト。
+const obj7 = {};
+obj7.newData = 7;
+console.log(obj7.newData);
+
+// オブジェクトのプロパティを削除するには、`delete`演算子を使う。削除したいプロパティを`delete`演算子の右に配置することで消せる。
+const deleteTestObject = {
+  data1: "data1",
+  data2: "data2",
+};
+
+delete deleteTestObject.data1;
+console.log(deleteTestObject);
+
+// TIPS: 演算子とは？+や-だけではない。deleteは単項演算子
+// ↓↓↓↓
+// * 算術演算子：+、-、*、/（数値計算）
+// * 比較演算子：<、>、==（値の比較）
+// * 論理演算子：&&、||、!（真偽判定）
+// * 代入演算子：=、+=（値の代入）
+// * 単項演算子：delete、typeof、instanceof（単一の値に対する処理）
+
+// constで定義したオブジェクト、値の変更はできる。再宣言ができない。
+
+// プロパティの存在確認には、in演算子を使う。（真偽値を返す）
+const inTestObject = {
+  dog: "taro",
+  cat: "meowmeow",
+  human: "aichan",
+};
+
+let isExist = "human" in inTestObject;
+if (isExist) {
+  console.log(`humanは存在しています。（${inTestObject.human}）`);
+} else {
+  console.log(`humanは存在しません。`);
+}
+
+// Object.hasOwn静的メソッドもin演算子と基本的に同じことができる。しかし、プロトタイプオブジェクトが絡むと結果が変わるので後で解説。
+const obj7 = {};
+// objが"プロパティ名"を持っているかを確認する
+Object.hasOwn(obj7, "dog"); // false
