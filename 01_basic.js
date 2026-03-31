@@ -553,3 +553,87 @@ if (isExist) {
 const obj7 = {};
 // objが"プロパティ名"を持っているかを確認する
 Object.hasOwn(obj7, "dog"); // false
+
+// プロパティの存在を確認してデータ取得までするなら、存在の確認と取得を分けるべきではない。
+// そのような場合にオプショナルチェーンを使う。
+// Optional chaining演算子（?.）は左辺のオペランドがnullish（nullまたはundefined）の場合は、それ以上評価せずにundefinedを返す。
+// .記法だけではダメな理由は→存在しなかった時に例外のTypeErrorになる。一方Optional chainingはundefinedを返す。
+const objOptionalChain = {
+  a: {
+    b: "objのaプロパティのbプロパティ",
+  },
+};
+console.log(objOptionalChain?.a?.b);
+
+// toStringメソッドを使うと、要素を文字列化できる。
+// toStringメソッドをオブジェクトに使うと、[object Object]という文字列が返ってくる。これは中身ではなく、‘汎用 Object だ’ ということだけを示す。
+// あまり使わなそう...
+
+// ビルトインオブジェクト`Object`の静的メソッド
+// 静的メソッド（スタティックメソッド）とは、始祖であるObjectそのものに実装されているメソッド
+// いろんなことができる。
+
+// オブジェクトの列挙（静的メソッドのひとtう）
+// ①Object.keys静的メソッド: オブジェクトのプロパティ名の配列にして返す
+// ②Object.values静的メソッド[ES2017]: オブジェクトの値の配列にして返す
+// ③Object.entries静的メソッド[ES2017]: オブジェクトのプロパティ名と値の配列の配列を返す
+const obj9 = {
+  one: 1,
+  two: 2,
+  three: 3,
+};
+// `Object.keys`はキーを列挙した配列を返す
+console.log(Object.keys(obj9));
+// `Object.values`は値を列挙した配列を返す
+console.log(Object.values(obj9));
+// `Object.entries`は[キー, 値]の配列を返す
+console.log(Object.entries(obj9));
+
+// 変数に入れてforEachとかもできる。
+const keysForEach = Object.keys(obj9);
+keysForEach.forEach((currentKey) => {
+  console.log(obj9[currentKey]);
+});
+
+// オブジェクトのマージ
+
+// Object.assign; を使う方法。
+const objectBase = { base: "base" };
+const objectAA = {
+  a: "a",
+  a1: "a1",
+};
+const objectBB = {
+  b: "b",
+  b1: "b1",
+};
+const merged1 = Object.assign(objectBase, objectAA, objectBB);
+console.log(merged1); // => { base: "base", a: "a", a1: "a1", b: "b", b1 = "b1" }
+
+// ...（spread構文）。オブジェクトや配列を展開して個別の引数にしてくれる。
+const objectA = {
+  a: "a",
+  a1: "a1",
+};
+const objectB = {
+  b: "b",
+  b1: "b1",
+};
+const merged = {
+  ...objectA,
+  ...objectB,
+};
+console.log(merged); // => { a: "a", a1: "a1", b: "b", b1 = "b1"}
+
+// Object.assignとspread構文の使い分けとしては、既存のオブジェクトに追加するならObject.assign、新しいオブジェクトを作成するならどっちでも良い。
+// 万が一プロパティ名が被ったら、後ろの方が優先される。
+// assignを用いると、オブジェクトの複製ができる。新しい空のオブジェクトに、既存のオブジェクトをマージすればOK。（Shallow Copy: 浅い複製）というらしい。
+// Shallow copyは、オブジェクトのルートにある値だけがコピーされる。（入れ子のオブジェクトのプロパティはコピーされず、元からあるものが参照される。オブジェクトの意図しない共有になってしまう。）
+// Deep Copyをするには複雑な処理が必要。必要になったら調べる。
+
+// オブジェクトについてまとめ
+// - Objectというビルトインオブジェクトがある
+// - {}（オブジェクトリテラル）でのオブジェクトの作成や更新方法
+// - プロパティの存在を確認するにはin演算子かObject.hasOwn静的メソッドを使う
+// - Optional chaining演算子（?.）はネストしたプロパティの存在確認とアクセスを同時に行う記法
+// - オブジェクトのインスタンスメソッドと静的メソッド
