@@ -637,3 +637,122 @@ console.log(merged); // => { a: "a", a1: "a1", b: "b", b1 = "b1"}
 // - プロパティの存在を確認するにはin演算子かObject.hasOwn静的メソッドを使う
 // - Optional chaining演算子（?.）はネストしたプロパティの存在確認とアクセスを同時に行う記法
 // - オブジェクトのインスタンスメソッドと静的メソッド
+
+// 【改めて】Objectは全ての親である
+// functionやarrayはもちろん、ほぼ全てのオブジェクトはObject.prototypeを継承している。(例外はある)
+// prototypeオブジェクトは、全てのオブジェクトの作成時に付与される特殊なオブジェクト。
+// つまり、Object.prototypeのメソッドはすべてのオブジェクトで使える。
+// arrayもfunctionも、Object.prototypeにあるメソッドは基本的に共通で使える
+
+// 配列について
+// 配列もオブジェクト。
+
+// 二次元配列について: インデックスを複数指定すればいい。配列のうちx個目の値となる配列のy個目の値。
+const twoDimensionsArray = [
+  [1, 2],
+  [2, 3],
+];
+console.log(twoDimensionsArray[1][1]); // =>2つ目の配列の2つ目の値（3）
+
+// 配列は常にlengthの数だけ要素を持っているとは限らない。未定義の要素を含んだ配列は、「疎な配列」という。
+const sparseArray = [1, , 3];
+console.log(sparseArray.length); // => 3
+// 2番目の要素は存在しないため undefined が返る
+console.log(sparseArray[1]); // => undefined
+
+// 配列[index]の代わりに、配列.at(番号)を使える。
+const arrayAt = ["a", "b", "c"];
+
+console.log(arrayAt.at(0)); // => "a"
+console.log(arrayAt.at(1)); // => "b"
+
+// -をつけると、後ろから数えた順番。
+console.log(array.at(-1)); // 後ろから1つ目の要素にアクセス
+
+// オブジェクトが配列か判断するには、Array.isArray静的メソッドを利用。これは、ObjectじゃなくてArrayにあるメソッド
+const isArray = Array.isArray(arrayAt);
+
+// 配列には分割代入ができる。左辺に定義した変数に、右辺の配列から対応する値が入っていく。右辺の配列が余ったら無視される。
+const arraySplit = [1, 5, 9];
+const [first, second, third] = arraySplit;
+console.log(`${first},${second},${third}`); // => 1,5,9
+
+// 「○番目の要素」と表す、要素の位置のことをインデックスという。0から始まる。
+// indexOfメソッド: array.indexOf("JavaScript"); で探索できる。
+// findIndexでは、配列内にオブジェクトが複数ある場合、配列の各要素をテストする関数をコールバック関数として渡すことで、特定の条件に当てはまるオブジェクトのインデックス番号を取得できる。
+// 取得されるのは、条件を満たした最初の要素のインデックス
+const colors = [{ color: "red" }, { color: "green" }, { color: "blue" }, { color: "blue" }];
+
+const indexOfBlue = colors.findIndex((currentColor) => {
+  return currentColor.color === "blue";
+});
+console.log(indexOfBlue); // => 2
+console.log(colors[indexOfBlue]); // => { "color": "blue" }
+
+// findIndexではなくfindにすると、インデックスではなくオブジェクトが返ってくる。
+// 例: { "color": "blue" }
+
+// findLastを使うと、条件と一致した最後のオブジェクトが返ってくる。
+
+// sliceメソッドを使うと、特定の範囲からだけデータを取得できる。
+const arrayOfSliceTest = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+// インデックス1から4まで(4の要素は含まない)の範囲を取り出す。（1,2,3）
+console.log(arrayOfSliceTest.slice(1, 4)); // => ["B", "C", "D"]
+// 第二引数を省略した場合は、第一引数から末尾の要素までを取り出す
+console.log(arrayOfSliceTest.slice(1)); // => ["B", "C", "D", "E"]
+// マイナスを指定すると後ろから数えた位置となる
+console.log(arrayOfSliceTest.slice(-1)); // => ["E"]
+// 第一引数と第二引数が同じ場合は、空の配列を返す
+console.log(arrayOfSliceTest.slice(1, 1)); // => []
+// 第一引数 > 第二引数の場合、常に空配列を返す
+console.log(arrayOfSliceTest.slice(4, 1)); // => []
+
+// includesメソッドは、特定の値が配列に含まれているか、真偽値のみで教えてくれる。
+
+// 配列の追加と削除
+// 基本情報にも出てくるpushとpopで配列末尾の値の追加、削除ができる
+// unshiftとshiftを使えば、配列先頭に値の追加、削除ができる
+
+// concatメソッドは、配列と配列を結合する
+const arrayA = ["A", "a"];
+const arrayB = ["B", "b"];
+const concatinatedArray = arrayA.concat(arrayB);
+console.log(concatinatedArray);
+
+// concat は値・配列を末尾に足した「新しい配列」を返す（元配列はそのまま）。
+// push も文字列などの追加はできるが、元配列を書き換え、返り値は新しい長さになる。
+
+// ...（Spread構文）を使うことで、配列リテラル中に既存の配列を展開できる。
+// concatを使うより楽そうだし任意の場所に展開できる。
+const array9 = ["A", "B", "C"];
+// Spread構文を使った場合
+const newArray = ["X", "Y", "Z", ...array9];
+console.log(newArray); // => [ "X", "Y", "Z", "A", "B", "C" ]
+// 自由に展開できる
+const newArray2 = ["X", "Y", ...array9, "Z"];
+console.log(newArray2); // => [ "X", "Y", "A", "B", "C", "Z" ]
+
+// popやshiftは末尾や先頭を削除するメソッドだった。
+// 配列の特定の位置を削除するには、array.splice(インデックス, 削除する要素数); を使う
+const arrayForSplice = ["a", "b", "c"];
+// 1番目から1つの要素("b")を削除
+arrayForSplice.splice(1, 1);
+console.log(arrayForSplice); // => ["a", "c"]
+
+// 配列のlengthプロパティへの代入をすると、その要素数に配列が切り詰められる。
+const arrayForLength = [1, 2, 3, 4, 5];
+arrayForLength.length = 2; // => [1,2]
+console.log(arrayForLength);
+
+// array = []を再度定義して配列をからにすることもできるが、元の配列をconstで定義していたら再定義できないのでletにしておく必要がある。
+
+// 破壊的なメソッドと非破壊的なメソッド
+// pushやpop、shiftは破壊的なメソッド（元の配列が書き換わる）
+// concatは、「元の配列をコピー→別の配列を追加→統合された新しい配列を返す」という流れで、元の配列には影響が及ばない。これを非破壊的なメソッドという
+// 破壊的なメソッドと非破壊的なメソッドは名前や戻り値で見分けるのが難しい。破壊的なメソッドは副作用をもたらす可能性があるので都度調べるなどして対策が必要。
+// 破壊的なメソッドの非破壊バージョンも出てきている。splice、reverse、sortに対してtoSpliced、toReversed、toSortedなど。toから始まるものは非破壊であることが多い。
+
+// 副作用を考えると、まずは非破壊的なメソッドで書けないか検討して、どうしても無理なら破壊的なメソッドを使うと良い。
+// ↓↓
+// 破壊的なメソッドは、シンプルですが元の配列も変更してしまうため、意図しない副作用が発生しバグの原因となる可能性があります。 非破壊的なメソッドは、使い分けが必要ですが元の配列を変更せずに新しい配列を返すため、副作用が発生することはありません。
+// そのため、まず非破壊的な方法で書けるかを検討し、そうではない場合に破壊的な方法を利用するとよいでしょう。
