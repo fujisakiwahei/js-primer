@@ -1225,3 +1225,41 @@ class MyArray extends Array {
 // その他、フロントであまり使わない理由
 // グローバルに近い状態 → Pinia の方が慣習・Devtools・テストと相性が良い。
 // コンポーネント単位 → Composition API の関数の方が Reactivity と一体化しやすい。
+
+//例外処理
+
+// try...catch構文
+// 例外（予期せぬエラーや非常事態）が発生しうるブロックをマークして、例外が発生した時の処理を記述する構文。
+// ①try...catch構文のtryブロック内で例外が発生すると、tryブロック内のそれ以降の処理は実行されず、catch節に処理が移行する。
+// ②catch節は、tryブロック内で例外が発生すると、発生したエラーオブジェクトとともに呼び出される。
+// ③finally節は、tryブロック内で例外が発生したかどうかには関係なく、必ずtry文の最後に実行される。
+try {
+  console.log("try開始");
+  undefinedFunction(); // => エラー。catchにエラーが渡される。
+} catch (error) {
+  console.log("エラーを受け取ったので、catchが実行されます。");
+  console.log(error instanceof ReferenceError); // => true（具体的に発生するエラーは、エラーオブジェクトのインスタンス）
+  console.log(`エラー:${error.message}`);
+} finally {
+  console.log("この節は必ず実行されます。");
+}
+
+// エラーは、JavaScriptのエンジンやブラウザが投げてくれる。ECMAScriptの仕様に従って。
+// catchは、引数でそのエラーオブジェクトを受け取る。catch(error)のerror。
+
+// throw分を使うと、例外を任意のタイミングで任意の内容で投げることができる。例外として投げられたオブジェクトは、catchの引数に入る。
+try {
+  throw new Error("任意のエラーを投げました");
+} catch (errorObject) {
+  console.log(`エラーです: ${errorObject}`);
+}
+// 例えば、数値が0より小さい時に以下のエラーを投げるとかもできる。
+// throw new Error(`${num} is not positive.`);
+
+// 上記はわかりやすいように簡略化したが、本来はErrorオブジェクトを投げるべき。
+// 後述するスタックトレースがやりやすいよう、Errorオブジェクトが推奨される。
+
+// 状況に合わせたエラーがすでに定義されている。それは。ビルトインエラーと呼ばれる。
+// 例: ReferenceError | SyntaxError | TypeError など
+
+// 適切なエラーをthrowすれば、デバッグが楽になる。どこでつまづいているかわかるため。
