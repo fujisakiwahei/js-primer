@@ -347,6 +347,10 @@ function sum(array) {
 }
 console.log(sum([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]));
 
+// 配列をjoinで区切って出力
+const arrayForJoin = [1, 2, 3, 4, 5];
+console.log(arrayForJoin.join("と"));
+
 // 配列のforEachメソッド
 // forEachメソッドはアロー関数を使う
 // forEachは、関数を引数に受け取れる高階関数
@@ -865,3 +869,359 @@ console.log(str2.toUpperCase()); // Stringのインスタンスメソッドで�
 // 例えば、"文字列"は、String("文字列")となる。自動で。これにより、プリミティブ型の"文字列"が、Stringオブジェクトのインスタンスメソッドを使えるようになる。
 // わざわざインスタンスを作る必要はなく、リテラルで宣言すれば、必要な時に自動変換されてメソッドが使える。
 // 復習: リテラルは、コード内で値を直接書くこと。英語の literal（文字通りの値）に相当。
+
+// スコープとは
+// スコープとは、変数の名前や関数などの他所から参照できる範囲を決めるもの。
+// スコープの内側で定義された変数や関数はスコープの中からしか参照できない。
+// →言い換えると、関数内で宣言した変数は、同じ関数内でしか参照できない。仮引数も同様。
+
+// スコープがないと、グローバルで一意な変数名を考え続けないといけない。大変。
+
+// スコープチェーンは内側から外側のスコープへと順番に変数が定義されているか探す仕組みのこと
+
+// ブロック（{}の中）で宣言された変数は、ブロックの中でしか使えない（そうなの！？）
+// スコープを制限するためにわざわざブロックで書くこともあるみたい。[ref](https://zenn.dev/kagan/articles/js-plain-block-statement)
+{
+  const innerBlock = "Dog";
+  console.log(innerBlock); // => "Dog"
+}
+console.log(innerBlock); // => ReferenceError
+
+// if文やwhile分もブロックスコープを作る。
+// ブロック内で定義した値は他から参照できないが、ブロック内で既存の変数を更新した場合はブロックの外からでも最新の値にアクセスできる。
+let dogName = "Aichan";
+if (dogName === "Aichan") {
+  const comment = "ジャイアン";
+  console.log(comment); // => "ジャイアン"
+  dogName = "Wappen";
+}
+// console.log(comment); // => ReferenceError
+console.log(dogName);
+
+// スコープチェーン
+// ブロックの中にブロックをネストする。outerとinnerとすると、innerからはouterで定義した変数を呼び出せるが逆はできない。
+// 簡単にいうと、内側→外側（深く→浅く or ローカル→グローバル）の向きで参照できる。
+
+// プログラムのルートに書いたら、グローバル変数になる。グローバル変数はあらゆる場所から参照できる。
+// グローバル変数は良くない。万が一ビルトインオブジェクトとかぶる変数を宣言してしまったら、全体に影響が及ぶ。変数のスコープを狭めておけば、影響は限定的になる。
+
+// 【重要】基本的に、変数を参照できる範囲は小さくしておくべき！人間の認知的にも、グローバルスコープの汚染的にも。
+
+// TODO: JSはモジュールで読み込むべきなのか。これまでそうしてこなかったけどどうすべきか調べる。
+
+// 巻き上げについて
+// 巻き上げとは、functionの宣言前に関数を呼び出しても「あるもの」として扱われること。変数は定義後に参照した方が安定する。
+console.log(dogWanWan); // => エラー
+const dogWanWan = "犬ワンワン";
+
+console.log(dogWanWanFunction("あいちゃん")); // => 関数は、変数とは違い宣言前に呼び出しても安定して動作する。
+function dogWanWanFunction(name) {
+  return `${name}はワンワンと言っていますよ`;
+}
+
+// letとconstがブロック内でスコープを持つ変数を定義できるようになったため、グローバルスコープの汚染を防ぐための即時実行関数は不要。確かに、ちょっとハッキーな感じに見えたので使いたくないと思っていた。朗報
+// しかし、即時実行関数は別の箇所で使われるので完全に不要なわけではない。あくまでも、グローバルスコープの汚染を防ぐための使い方が不要。
+
+// クロージャー: 関数内から特定の変数を参照し続けることで関数が状態を持てる仕組み
+// JavaScriptのスコープ（変数の見える範囲）は、プログラムを書いた場所によって決まる。
+// 実行中に他の関数から呼び出されても、変数の参照先（スコープ）は変わらない。
+const createCounter = () => {
+  let count = 0;
+  return function increment() {
+    // `increment`関数は`createCounter`関数のスコープに定義された`変数`count`を参照している
+    count = count + 1;
+    return count;
+  };
+};
+// createCounter()の実行結果は、内側で定義されていた`increment`関数
+const myCounter = createCounter();
+// myCounter関数の実行結果は`count`の評価結果
+console.log(myCounter()); // => 1
+console.log(myCounter()); // => 2
+
+// TODO: ↑↑の仕組みがちょっと難しかった。let count =0;で毎回リセットされると思ったが、returnの中しか返ってこないから違うみたい
+// クロージャーは「静的スコープ」と「参照され続けている変数のデータが保持される」という2つの性質によって成り立っている
+
+// 関数とthis
+// thisはいろんなスコープやコンテクストで使えるが、基本的にはメソッドで使うので全パターンを覚えなくてもOK
+
+// グローバルでthisを使うべきではない。
+// 一応仕組みとしては、スクリプトのトップレベルのthisはグローバルオブジェクトを参照する（ブラウザだとwindowオブジェクト）
+// 実行コンテクストがモジュールの場合はundefined。
+
+// おさらい: オブジェクトのプロパティが関数だったら、メソッドと呼ぶ。
+const ObjectContainsMethod = {
+  method3x(num) {
+    return num * 3;
+  },
+};
+console.log(ObjectContainsMethod.method3x(6));
+
+// メソッドをArrow Functionで実装すると以下。testFuncメソッドが、アロー関数である。
+const ObjectContainsMethod2 = {
+  testFunc: () => {
+    return "テスト関数ですね";
+  },
+  testThisArrow: () => {
+    return this;
+  },
+  testThisNormalFunc() {
+    return this;
+  },
+};
+
+console.log(ObjectContainsMethod2.testThisArrow()); // => window:home | アロー関数で作ったメソッドのthisは、自身を囲んでいるスコープのthisを指す。
+//呼び出し時のベースオブジェクト（. の左）が this になる
+console.log(ObjectContainsMethod2.testThisNormalFunc()); // => ObjectContainsMethod2 | 通常の関数で作ったメソッドのthisは、自身を囲んでいるオブジェクトを指す。
+console.log(ObjectContainsMethod2.testFunc());
+
+// thisは、実行時に決まる値である。関数の呼び出し元から暗黙的に渡される。
+// thisが参照するのは、ベースオブジェクト。obj.method というふうに呼び出したら、obj がベースオブジェクトになる。
+// strict modeのjsにおいて、メソッド以外の関数におけるthisはundefinedとなる。そのため、メソッド以外で使う必要がない。
+
+// おさらい: メソッドは、何かしらのオブジェクトに所属している。
+
+// thisは、メソッドの中で、同じオブジェクトに属する並列のプロパティ（関数含む）を呼び出すのに便利。
+const person = {
+  fullName: "Wahei Fujisaki",
+  sayName() {
+    return `Hello! ${this.fullName}!`; // ここでのthisは、personを指している。
+  },
+};
+console.log(person.sayName()); // => Hello! Wahei Fujisaki!
+
+// thisを含むメソッドを変数に代入してベースオブジェクトがない関数として実行した場合、strict mode ならundefinedとなる。
+// →定義したオブジェクトの外で変数に入れて実行すると、変数のベースオブジェクトがない場合参照できずundefinedになるということ。
+// →基本的にメソッドはオブジェクトの中で完結したいなぁ。
+
+// 対策としては
+// ①メソッドはメソッドとして使う。わざわざ別の変数に入れない。
+// ②call,apply,bindといった、thisを明示的に記述する関数を使う。→あまり多く使わなそうなのでスルーで。
+
+// コールバック関数におけるthisはundefinedになる。コールバック関数でthisを使いたい時は、this を別の変数(thatとか)に代入して、それをコールバック関数内で呼び出すとよい。
+const Prefixer = {
+  prefix: "pre",
+  prefixArray(strings) {
+    const that = this;
+    return strings.map(function (str) {
+      return that.prefix + "-" + str;
+    });
+  },
+};
+// `prefixArray`メソッドにおける`this`は`Prefixer`
+const prefixedStrings = Prefixer.prefixArray(["a", "b", "c"]);
+console.log(prefixedStrings); // => ["pre-a", "pre-b", "pre-c"]
+
+// ↑↑のような状況で、Arrow Functionの仕様（自分を囲んでいるスコープのベースオブジェクトがthisになる）が逆に役立つ。
+// 【重要】コールバック関数でthisを使いたい時は、Arrow Functionを使うとよい。（言い換えると、Arrow Functionにおけるthisは、Arrow Function自身の外側のスコープに定義された最も近い関数のthisの値k）
+const Prefixer2 = {
+  prefix: "pre",
+  // これがメソッド
+  prefixArray(strings) {
+    // これがコールバック関数
+    return strings.map((str) => {
+      return `${this.prefix} - ${str}`; // コールバック関数のthisは、一つ外側のスコープ「prefixArray」のベースオブジェクト。
+    });
+  },
+};
+const prefixedArray = Prefixer2.prefixArray(["犬", "猫", "亀"]);
+console.log(prefixedArray);
+
+// クラスについて
+// 「クラス」といってもさまざまなので、一緒くたにできない。
+// JS Primerでは、構造、動作、状態を定義した構造をクラスと呼ぶ。
+
+// クラスは設計図で、クラスから具体的なインスタンスを生成できる。Figmaのコンポーネントとインスタンスの関係に近い。
+
+// クラスを定義するにはclass構文を使う。
+// クラスは必ずコントラクタを持ち、contructor()という名前のメソッドで定義する。
+// コントラクタは初期化を行うもので、インスタンスが生成された際に実行される。
+
+class myClass {
+  constructor() {
+    let variable = 0;
+    console.log("コンストラクタが実行されてクラスが初期化されました。");
+    // コンストラクタ関数の処理
+    // インスタンス化されるときに自動的に呼び出される
+  }
+}
+
+// 関数式と同じように、クラスを式として変数に代入することもできる。
+const classInVariable = class {
+  constructor() {
+    console.log("コンストラクタが実行されてクラスが初期化されました。");
+  }
+};
+
+// コントラクタを書かないと、からのコントラクタが生成される。
+
+// new演算子を使って、定義したクラスからインスタンスを生成できる。インスタンス化する時は引数が必要。
+// 以下は、instance1とinstance2は別物。
+const instance1 = new myClass();
+const instance2 = new myClass();
+console.log(instance1);
+
+// new演算子の引数は、コンストラクタの引数に渡される。
+// コンストラクタの引数は、this.${引数名}でアクセスできる。
+class GenerateGeo {
+  constructor(x, y) {
+    this.x = x;
+    this.y = y;
+    // return文はconstructorでは書かない。
+  }
+}
+
+const geo = new GenerateGeo(960, 540);
+console.log(`${geo.x},${geo.y}`);
+
+// 上記がなぜxではなくてthis.xになるかの理解
+// コンストラクタ内で変数を定義（x,y）してもスコープはコンストラクタ内限定になる。そうではなくクラス全体で使えるように、thisで「constructorの一つ上の"インスタンス"」に変数x,yを定義している。
+
+// クラスは、関数のように呼び出せず、かならずnew する必要がある。
+MyClass(); // => TypeError: class constructors must be invoked with |new|
+
+// プロトタイプメソッドとは: 既存オブジェクトをコピーして新しいオブジェクトを作成するデザインパターン。複雑な初期化処理を避けられる。
+// プロトタイプを聞くとややこしく感じるが、単にクラスからインスタンスを生成する仕組みのこと。
+
+// 実装の練習: 「次のコードでは、Counterクラスにincrementメソッドを定義しています。 このときのCounterクラスのインスタンスは、それぞれ別々の状態（countプロパティ）を持ちます。」
+// できた。使う時は、「インスタンス名.メソッド名」というふうに呼び出す。
+// constructorでも、メソッドでも、インスタンスのルートに変数を置きたいときはthis.変数名とする
+class Counter {
+  constructor() {
+    this.count = 0;
+  }
+  countUp() {
+    this.count++;
+  }
+}
+
+const counterA = new Counter();
+const counterB = new Counter();
+
+counterA.countUp();
+counterA.countUp();
+
+console.log(counterA.count);
+console.log(counterB.count);
+
+// ここで一息。クラスの構成要素としては、クラス > コンストラクタ/メソッド。ここからフィールドとかゲッターとかセッターとか新しい概念が出てきやがるらしい。
+
+// クラス内のメソッド（プロトタイプメソッド）は、各インスタンスから一意のものとして参照される。各インスタンスが共通のメソッドを見ている。
+// メソッドの呼び出し方は、インスタンス名.メソッド名()
+
+// クラスでは、プロパティの参照（getter）、プロパティへの代入（setter）に対するアクセスプロパティを定義している。
+// アクセッサプロパティはメソッド名（プロパティ名）の前にgetまたはsetをつけるだけ。
+class クラス {
+  // getter
+  get プロパティ名() {
+    return 値;
+  }
+  // setter
+  set プロパティ名(仮引数) {
+    // setterの処理
+  }
+}
+const インスタンス = new クラス();
+インスタンス.プロパティ名; // getterが呼び出される
+インスタンス.プロパティ名 = 値; // setterが呼び出される
+
+// getterは値を返すだけ。setterは値を代入できる。と覚えておこう。
+// getとsetは、プロパティのフリをした（引数のいらない）メソッド。
+// データの読み書きのタイミングでバリデーションや変換をしたい時に便利
+
+// クラスフィールドについて
+// ES2022で登場した。これまで、クラスの中で登場する変数はコンストラクタの中で初期値を宣言する必要があったが、クラスの直下に宣言できるようになった。
+// 変数を定義するときは、constructorでthis.変数名とするか、クラスのルートで変数を定義してしまうか。
+// 実行の順番は、クラスフィールド→コンストラクタ。
+
+class TestClassField {
+  count = 0;
+  countUp() {
+    this.count++;
+  }
+}
+
+const countInstance = new TestClassField(); // この時点でcountは0。インスタンスを作る際にメソッドは自動で実行されない。constructorとクラスフィールドだけ。
+console.log("ここで初期化されました。");
+countInstance.countUp();
+console.log(countInstance.count); // => 1
+countInstance.countUp();
+console.log(countInstance.count); // => 2
+countInstance.countUp();
+console.log(countInstance.count); // => 3
+
+// クラスフィールドにて、コンストラクタで使う変数を値なしで定義しておくと読む人やAIに優しい。
+class BlancTestField {
+  count;
+  countUp() {
+    this.count++; // ここのthisは、呼び出し元によって変わってしまう。アロー関数にしたら固定される。
+  }
+  countUpArrow = () => {
+    this.count++; // こうすると、生成されたインスタンスのcountを参照し続ける。
+  };
+}
+
+// クラスフィールドでのthisは、インスタンスを指す。
+// クラスフィールドは、constructorの中でthisに対してプロパティを追加するのと意味的にはほぼ同じ
+
+// インスタンスの外からアクセスされたくないクラスフィールド（プロパティ）には、#をつける。
+// #にアクセスしようとするとエディターでエラーを出してくれるのでありがたい。→ "プロパティ '#privateField' には private 識別子が指定されているため、クラス 'PrivateExampleClass' の外部ではアクセスできません。"
+class PrivateExampleClass {
+  publicField = 100;
+  #privateField = 42;
+  dump() {
+    // Privateクラスフィールドはクラス内からのみ参照できる
+    console.log(this.#privateField); // => 42
+  }
+}
+const privateExample = new PrivateExampleClass();
+privateExample.dump();
+console.log(privateExample.publicField); // => 100
+// console.log(privateExample.#privateField); // => Error
+
+// 静的メソッドは、インスタンスを作成しなくても直接クラスから呼び出せる。
+class StaticMethodTest {
+  static staticMethod() {
+    console.log("これは静的メソッドで、クラスから直接呼び出せます。インスタンスは作らなくていいよ。");
+  }
+}
+StaticMethodTest.staticMethod(); // => これは静的メソッドで、クラスから直接呼び出せます。インスタンスは作らなくていいよ。
+
+// 静的メソッドでのthisはクラス自身を参照し、インスタンスを参照しない。
+// 静的クラスフィールドも作れる。これだけだと変数にオブジェクトを入れるのと変わりない気がするが、メソッドとセットで育てていきたい時に使うとのこと。
+class Colors {
+  static GREEN = "緑";
+  static RED = "赤";
+  static BLUE = "青";
+}
+// クラスのプロパティとして参照できる
+console.log(Colors.GREEN); // => "緑"
+
+// 【概念理解した気がするメモ】JavaScriptのチェーンの概念は、今いるスコープや階層から徐々に上にたどってものを探す。WPのテンプレートを、具体→抽象で探しているのと同じかも。
+// →インスタンスからプロトタイプのメソッドを呼び出せるのも、プロトタイプチェーンのおかげ。最初はインスタンスにメソッドが定義されていないか探すが、なければ一つ上の階層のプロトタイプに探しにいく。
+// インスタンスから見ると、クラスはプロトタイプチェーンの親である。
+
+// 継承について
+// "extends" を使って、既存のクラスを継承した新しいクラスを作成できる。
+class Parent {}
+class Child extends Parent {}
+const instance = new Child();
+
+// ビルトインオブジェクト（Arrayなど）も継承できる
+class MyArray extends Array {
+  get first() {
+    return this.at(0);
+  }
+
+  get last() {
+    return this.at(-1);
+  }
+}
+
+// superを使うと、親クラスを参照できる。
+
+// Nuxtの場合、Piniaで状態を管理できる。それと関数を使えば同じようなことができるしわかりやすいのでクラスはあまり使わなくて良さそう。
+// しかし、利用するAPIがクラス形式だったりするので、知っておくに越したことはない。
+// その他、フロントであまり使わない理由
+// グローバルに近い状態 → Pinia の方が慣習・Devtools・テストと相性が良い。
+// コンポーネント単位 → Composition API の関数の方が Reactivity と一体化しやすい。
