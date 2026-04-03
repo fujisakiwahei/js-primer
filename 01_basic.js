@@ -1261,5 +1261,8 @@ try {
 
 // 状況に合わせたエラーがすでに定義されている。それは。ビルトインエラーと呼ばれる。
 // 例: ReferenceError | SyntaxError | TypeError など
+// エラーリファレンス: https://developer.mozilla.org/ja/docs/Web/JavaScript/Reference/Errors
 
 // 適切なエラーをthrowすれば、デバッグが楽になる。どこでつまづいているかわかるため。
+
+// スタックトレースとは、プログラムの実行過程を記録した内容で、どの処理によってエラーが発生したかの記述。
