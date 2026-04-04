@@ -1266,3 +1266,272 @@ try {
 // 適切なエラーをthrowすれば、デバッグが楽になる。どこでつまづいているかわかるため。
 
 // スタックトレースとは、プログラムの実行過程を記録した内容で、どの処理によってエラーが発生したかの記述。
+// エラーに関するログは、console.error()で出力すると良い。
+
+// 非同期通信について: 非同期通信は、JavaScriptで絶対に避けられない重要な概念。
+// これまで学んできたのは同期処理。1つの行の処理が終わるまで次の行には進まない。この方式には問題がある。ひとつの処理が長くなると、サイトやアプリ全体の読み込み時間が長くなる。そしてそれの積み重ね。
+// 一方、非同期処理は順番に処理をしていくものの、ひとつの同期処理が終わるのを待たずにどんどん進んでいく。
+
+// 非同期処理は並行処理のようだが、実際には細切れな処理をメインスレッドで行っているだけ。
+// ただ、Web Workerなど、別のランタイムで本当に並列に実行する場合もある。
+
+// 【自分の考えの訂正】非同期処理といえばAsyncかと思っていたが、それに限らないっぽい。
+// 例えば、setTimeOutとか、
+
+function product10() {
+  const startTime = Date.now();
+  let product = 1;
+  for (let i = 1; i <= 10; i++) {
+    product *= i;
+  }
+  console.log(`1から10までの積（10!）は${product}です。`);
+  const endTime = Date.now();
+  const elapsedTime = endTime - startTime;
+  console.log(`経過時間は${elapsedTime}ミリ秒です`);
+}
+console.log(product10());
+
+// Promiseオブジェクトを活用すると、成功時と失敗時の処理を効率よく書ける。
+// 実際に使用するときは、インスタンスをnew Promise()で作成する。
+
+// onFulfilledとonRejectedの2種類のコールバック関数が、成功・失敗によって実行される。
+
+// `Promise`インスタンスを作成
+const promise = new Promise((resolve, reject) => {
+  // 非同期の処理が成功したときはresolve()を呼ぶ
+  // 非同期の処理が失敗したときにはreject()を呼ぶ
+});
+const onFulfilled = () => {
+  console.log("resolveされたときに呼ばれる");
+};
+const onRejected = () => {
+  console.log("rejectされたときに呼ばれる");
+};
+// `then`メソッドで成功時と失敗時に呼ばれるコールバック関数を登録
+promise.then(onFulfilled, onRejected);
+
+// Promiseインスタンスには、内部的に3つの状態が存在する。
+// ①Fulfilled→resolve（成功）したときの状態。このときonFulfilledが呼ばれる
+// ②Rejected→reject（失敗）または例外が発生したときの状態。このときonRejectedが呼ばれる
+// ③Pending→FulfilledまたはRejectedではない状態
+// ↓
+// 一度状態が決定すると、その後は変更不可能。Settled（決定）状態と呼ばれる。
+
+// 寄り道
+// https://youtu.be/Vhnz1V-v1cU?si=3snk6retmb-cNKGT
+
+// 非同期処理は、通信が発生する処理で起きる。（Web APIを叩いたりDBにクエリを投げたり）。
+// 実行完了を待たずに、並行して次の処理が実行される。
+// 非同期処理をすると重い処理の間にユーザを待たせずに済む。
+// 実行完了までデータが存在しない。実行結果を後で引数として使う関数などがあるとややこしい。
+// なので、完了を待つ必要がある。（非同期処理を同期的にやる方法？ややこしい）
+
+// 完了を待つ方法① Promise
+
+// Promiseの初期状態
+// pending: 初期状態
+// fulfilled: 処理が成功して完了した状態
+// rejected: 処理が失敗して完了した状態
+
+// 関数の中で return new Promise()を使うと、関数の完了を待つことができる。（resolveかrejectが出てくるまでは次の処理に進まない。）
+const promiseFunc = () => {
+  return new Promise((resolve, reject) => {
+    someAsynchronousFunc(() => {
+      console.log("処理しました");
+    })
+      .then(() => {
+        return resolve("処理に成功しました");
+      })
+      .catch(() => {
+        return reject("処理に失敗しました");
+      });
+  });
+};
+promiseFunc();
+
+// fetchはそもそも非同期関数である。
+// 以下のようにfetchをそのまま使うと、fetchをしている間に他の処理が進んでしまい、結果として「fetchが完了する前に変数への代入がされてしまう」ことになる。
+// →当然、usernameがundefinedになる。
+// そう考えると、Promiseは、非同期関数をちゃんと待つためのもの？
+
+// 非同期処理をおこなう関数を宣言
+const getGitUsername = () => {
+  const url = "https://api.github.com/users/deatiger";
+
+  // GitHub APIをFetchメソッドで実行
+  fetch(url)
+    .then((res) => res.json())
+    .then((json) => {
+      console.log("これは非同期処理成功時のメッセージです");
+      return json.login;
+    })
+    .catch((error) => {
+      console.error("これは非同期処理失敗時のメッセージです。", error);
+      return null;
+    });
+};
+
+const message = "GitのユーザーIDは";
+const username = getGitUsername();
+console.log(message + username);
+// 結果
+// GitのユーザーIDはundefined
+// これは非同期処理成功時のメッセージです
+
+// .then(コールバック) は「Promise が満たされたあとで、そのコールバックが実行されるまで“結果を先送りにする”」という意図がある。
+// 非同期処理をおこなう関数を宣言
+// const getGitUsername1 = () => {
+//   return new Promise((resolve, reject) => {
+//     let url = "https://api.github.com/users/deatiger";
+
+//     // GitHub APIをFetchメソッドで実行
+//     fetch(url)
+//       .then((res) => res.json()) // ここのresで受けているのは、実行環境のFetch APIが作るResponceオブジェクト。それをjsonにパースしている。
+//       .then((json) => {
+//         // これは、responseオブジェクト（res）のjsonメソッド。それにthenでチェーンを作っている。
+//         console.log("これは非同期処理成功時のメッセージです");
+//         return resolve(json.login);
+//       })
+//       .catch((error) => {
+//         console.error("これは非同期処理失敗時のメッセージです。", error);
+//         return reject(null);
+//       });
+//   });
+// };
+
+const message1 = "GitのユーザーIDは";
+getGitUsername1().then((username) => {
+  console.log(message1 + username);
+});
+
+// Promiseはわかりづらい...!わかりやすいのは、async/await
+// →使い方としては、非同期処理を伴う関数定義にasyncをつけて、非同期処理を伴う関数の実行時にawaitをつける
+// awaitは、Promiseの.thenを使わなくていいので便利。わかりやすいし読みやすい。
+
+const asyncGetUser = async () => {
+  const url = "https://api.github.com/users/fujisakiwahei";
+  const message = "GitのUser IDは";
+
+  const json = await fetch(url) // asyncの中でawaitしているので、この処理が完了するまで次の処理に進まない。
+    .then((res) => {
+      console.log("非同期処理成功です。");
+      return res.json();
+    })
+    .catch((error) => {
+      console.error("非同期処理失敗です。", error);
+      return null;
+    });
+
+  console.log(message + json.login);
+};
+asyncGetUser();
+
+// 天気を取得するAPIで練習
+const asyncGetWeather = async () => {
+  const weatherUrl = "https://api.open-meteo.com/v1/forecast?latitude=35.6895&longitude=139.6917&current=temperature_2m,weather_code";
+
+  const weather = await fetch(weatherUrl)
+    .then((res) => {
+      // console.log(weather) -> これがダメな理由は、await内の処理がすべて完了するまでweatherの値は確定しないから。
+      console.log("非同期処理成功です。");
+      return res.json();
+    })
+    .catch((error) => {
+      console.error("エラーです", error);
+      return null;
+    });
+
+  if (weather) {
+    const temp = weather.current.temperature_2m;
+    const weatherCode = weather.current.weather_code;
+    console.log(`現在の気温: ${temp}℃`);
+    console.log(`現在の天気: ${weatherCode}`);
+  }
+};
+asyncGetWeather();
+
+// ========================================
+// 練習問題: APIを活用したデータ取得（JSONPlaceholder）
+// ========================================
+// 【課題】次の URL から userId=1 の投稿を最大3件取得し、各 post の id と title をコンソールに出力する。
+//   https://jsonplaceholder.typicode.com/posts?userId=1&_limit=3
+//
+// https://jsonplaceholder.typicode.com/posts?userId=1&_limit=3
+const fetchAndDisplayJson = async () => {
+  const url = "https://jsonplaceholder.typicode.com/posts?userId=1&_limit=3";
+  const data = await fetch(url)
+    .then((res) => {
+      console.log("データ取得完了");
+      return res.json();
+    })
+    .catch((error) => {
+      console.error("エラーです", error); // console.error()は、第一引数から順にコンソールに出力される。引数は1以上ならいくつあってもOK
+    });
+  if (data) {
+    console.log(data);
+    data.forEach((currentContent) => {
+      console.log(`ID: ${currentContent.id}`);
+      console.log(`Title: ${currentContent.title}`);
+      console.log(`Body: ${currentContent.body}`);
+    });
+  }
+};
+fetchAndDisplayJson();
+
+// JSPrimerに戻る。非同期処理：Promise/Async Function の項目は難しかったのでスキップ。動画での理解で前に進みます。
+// mapについてはあまり使わなそうなので一旦スキップします。
+// Setは重複のない値の集合。（配列に似る別の型）同じ値は自動で弾かれる。添字アクセスはなく、for...of や forEach で順に取り出す。
+// NuxtやReactで開発をする時にイテレーターとジェネレーターはほぼ使わないらしいのでスキップ。
+
+// JSONについて
+
+// JSON.perse(json)メソッドは、localStorageの読み書きなどで使う。
+// →→localStorageは文字列しか保存できないので、オブジェクトを保存・取得するときにセットで使う。
+// →→JSONにパースできないときは例外が投げられる。try catch構文で使うべき。
+
+// Dateオブジェクトについて
+// Dateオブジェクトから新規インスタンスを作ると、現在の日時を細かく取得できる。
+
+// 現在の時刻を表すインスタンスを作成する
+const now = new Date();
+// 時刻値だけが欲しい場合にはDate.nowメソッドを使う
+console.log(Date.now());
+
+// 時刻値を取得する
+console.log(now.getTime());
+// console.log(now.now()); => インスタンスにしたらnow()は使えない。静的メソッドで、Dateだけに存在している。Dateのプロトタイプにも存在していない。
+
+// 時刻をISO 8601形式の文字列で表示する
+console.log(now.toISOString());
+
+// Mathオブジェクトについて
+// 乱数を出したり、数値の大小を比較したり、少数を丸めたり、数学的なことができる。
+
+// モジュールについて
+// VueやNuxtでは、全てのJs,Ts,Vueファイルがモジュールとして扱われる。つまり、それぞれのファイルで閉じたスコープを持つので衝突しない。
+// 一方、Vanilla JSでは明示的にModuleであることを書かないとスクリプトとして扱われ、グローバルの変数名が共有され衝突の可能性が出てくる。
+
+// Nuxtの場合
+
+// composables/useAuth.js
+// 何も設定しなくてもexport/importが使える
+// export function useAuth() {
+//     // ...
+// }
+
+// ages/index.vue
+// <!-- importもそのまま書ける -->
+// <script setup>
+// import { useAuth } from "~/composables/useAuth";
+// </script>
+
+// モジュールの場合は、複数のモジュールを読み込んでいおり、その読み込んだモジュール同士で変数名のバッティングがあっても大丈夫。各モジュール内にスコープが閉じているので。
+
+// export defaultを使うと、「このモジュールのメイン機能だよ」ということで、名前なしでエクスポートできる。
+// →呼び出し側で名前を決める。
+// しかし、名前がついていた方がわかりやすいしAIの補完もしやすいので、基本は名前付きエクスポートでOK。
+// →→Nuxtの場合は、「このファイルのデフォルトエクスポートを読み込む」と決めているディレクトリがある。（nuxt.config.tsやserver/api/* など）
+// そのような場合のみexport defaultを使い、あとは名前付きエクスポートにしておけばOK。
+
+// 260404_第1章終了！！
+// 綺麗にまとめた→./01_basic.md
